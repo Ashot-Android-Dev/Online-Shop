@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Product</string>
+    <string name="start">Start</string>
+    <string name="title"> Welcome to my app\n have a nice shopping</string>
+</resources>
