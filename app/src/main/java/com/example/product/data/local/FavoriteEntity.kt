@@ -28,5 +28,4 @@ data class CartEntity(
     val discountPercentage: Double,
     val discountedTotal: Double,
     val thumbnail: String,
-
 )

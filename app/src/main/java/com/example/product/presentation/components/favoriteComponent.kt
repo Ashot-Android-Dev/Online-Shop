@@ -1,7 +1,11 @@
 package com.example.product.presentation.components
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,122 +54,132 @@ fun FavoriteComponent(
 ) {
     var selectedQuantity by rememberSaveable { mutableIntStateOf(1) }
     var openDialog by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
     val totalPrice = favoriteEntity.price * selectedQuantity
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp),
+            .padding(5.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+            .clickable { isExpanded = !isExpanded },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = Yellow100)
     ) {
-        Row {
-            Box(
-                modifier = modifier
-            ) {
-                AsyncImage(
-                    model = favoriteEntity.thumbnail,
-                    contentDescription = favoriteEntity.title,
-                    modifier = Modifier
-                        .height(150.dp)
-                        .border(
-                            width = 1.dp,
-                            color = GrayForBackround,
-                            shape = RoundedCornerShape(12)
-                        ),
 
-                    )
+        Column {
+            Row {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .clip(
-                            RoundedCornerShape(
-                                topEnd = 8.dp,
-                                bottomEnd = 12.dp
-                            )
-                        )
-                        .background(
-                            Color.LightGray.copy(alpha = 0.4f), RoundedCornerShape(
-                                topEnd = 8.dp,
-                                bottomEnd = 30.dp
-                            )
-                        )
-                        .padding(3.dp),
-                    contentAlignment = Alignment.Center
+                    modifier = modifier
                 ) {
+                    AsyncImage(
+                        model = favoriteEntity.thumbnail,
+                        contentDescription = favoriteEntity.title,
+                        modifier = Modifier
+                            .height(150.dp)
+                            .border(
+                                width = 1.dp,
+                                color = GrayForBackround,
+                                shape = RoundedCornerShape(12)
+                            ),
+
+                        )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .clip(
+                                RoundedCornerShape(
+                                    topEnd = 8.dp,
+                                    bottomEnd = 12.dp
+                                )
+                            )
+                            .background(
+                                Color.LightGray.copy(alpha = 0.4f), RoundedCornerShape(
+                                    topEnd = 8.dp,
+                                    bottomEnd = 30.dp
+                                )
+                            )
+                            .padding(3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = " -${favoriteEntity.discountPercentage}%",
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = Color.Red,
+                            fontSize = 16.sp,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.padding(6.dp)) {
                     Text(
-                        text = " -${favoriteEntity.discountPercentage}%",
+                        text = " $${totalPrice}$",
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = Color.Red,
-                        fontSize = 16.sp,
+                        color = Color.Red
                     )
+                    Text(
+                        text = favoriteEntity.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        maxLines = 2
+                    )
+                    Text(
+                        text = "Quantity: ${favoriteEntity.quantity}",
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+
                 }
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(modifier = Modifier.padding(6.dp)) {
-                Text(
-                    text = " $${totalPrice}$",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Red
-                )
-                Text(
-                    text = favoriteEntity.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    maxLines = 2
-                )
-                Text(
-                    text = "Quantity: ${favoriteEntity.quantity}",
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
+            if (isExpanded) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(onClick = { openDialog = true }) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = "Delete from favorite",
+                            tint = Color.DarkGray
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Counter(
+                        count = selectedQuantity,
+                        onCountChange = { newQuantity ->
+                            selectedQuantity = newQuantity.coerceIn(0, favoriteEntity.quantity)
+                        },
+                        min = 1,
+                        max = favoriteEntity.quantity
 
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    BuyButton {}
+                }
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconButton(onClick = { openDialog = true }) {
-                Icon(
-                    Icons.Filled.Delete,
-                    contentDescription = "Delete from favorite",
-                    tint = Color.DarkGray
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Counter(
-                count = selectedQuantity,
-                onCountChange = { newQuantity ->
-                    selectedQuantity = newQuantity.coerceIn(0, favoriteEntity.quantity)
-                },
-                min = 1,
-                max = favoriteEntity.quantity
+    }
+    if (openDialog) {
+        DeleteAlertDialog(
+            onDismissRequest = { openDialog = false },
+            onConfirmation = {
+                cartViewModel.removeFavorite(favoriteEntity.id)
+                openDialog = false
+            },
+            dialogTitle = "Delete Product",
+            dialogText = "Are you sure you want to delete this product?"
 
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            BuyButton {
-
-            }
-        }
-        if (openDialog) {
-            DeleteAlertDialog(
-                onDismissRequest = { openDialog = false },
-                onConfirmation = {
-                    cartViewModel.removeFavorite(favoriteEntity.id)
-                    openDialog = false
-                },
-                dialogTitle = "Delete Product",
-                dialogText = "Are you sure you want to delete this product?"
-
-            )
-        }
-
+        )
     }
 }
